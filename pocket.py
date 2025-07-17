@@ -1,4 +1,3 @@
-
 import os
 import re
 import json
@@ -179,6 +178,34 @@ def banner_grab():
     target = input("Target IP: ").strip()
     subprocess.run(["nmap", "-sV", target])
 
+# === 📶 Wi-Fi Scanner (No Root)
+def wifi_scan():
+    try:
+        result = os.popen("termux-wifi-scaninfo").read()
+        networks = json.loads(result)
+        path = os.path.join(LAB_PATH, "wifi-scan.txt")
+        with open(path, "w") as f:
+            for net in networks:
+                line = f"SSID: {net.get('ssid')} | BSSID: {net.get('bssid')} | Signal: {net.get('level')} dBm\n"
+                f.write(line)
+                print(line.strip())
+        speak(f"Found {len(networks)} networks. Saved to wifi-scan.txt.")
+    except Exception as e:
+        speak("Wi-Fi scan failed. Make sure you granted location permission.")
+
+# === 🧠 Simulated Wi-Fi Brute-force
+def wifi_brute_sim():
+    ssid = input("Target SSID: ").strip()
+    wordlist = ["12345678", "password", "admin123", "iloveyou", "mypassword"]
+    correct_pass = "admin123"  # Simulated correct password
+    speak(f"Starting simulated brute-force on {ssid}...")
+    for pwd in wordlist:
+        print(f"Trying password: {pwd}")
+        if pwd == correct_pass:
+            speak(f"Password found: {pwd}")
+            return
+    speak("Password not found in wordlist.")
+
 # === 📜 Help
 def show_help():
     print("""
@@ -198,6 +225,8 @@ def show_help():
   scan my network        - Scan your LAN
   port scan              - Port scan a device
   grab banner            - Detect OS/services
+  wifi scan              - List nearby Wi-Fi networks
+  wifi brute             - Simulated Wi-Fi brute force (for demo only)
   whoami                 - Show your name
   update pocket          - Pull latest version
   help                   - Show this list
@@ -205,7 +234,7 @@ def show_help():
 """)
 
 # === 🎬 MAIN LOOP
-if _name_ == "_main_":
+if __name__ == "__main__":
     name = get_user()
     speak(f"Welcome back, {name}!")
 
@@ -218,10 +247,10 @@ if _name_ == "_main_":
         elif cmd.startswith("wikipedia"):
             wiki_info(cmd.replace("wikipedia", "").strip())
 
-        elif cmd.startswith("scan hotspot"):
+        elif cmd == "scan hotspot":
             scan_hotspot()
 
-        elif cmd.startswith("scan my network"):
+        elif cmd == "scan my network":
             scan_network()
 
         elif cmd == "port scan":
@@ -262,6 +291,12 @@ if _name_ == "_main_":
 
         elif cmd == "update pocket":
             update_pocket()
+
+        elif cmd == "wifi scan":
+            wifi_scan()
+
+        elif cmd == "wifi brute":
+            wifi_brute_sim()
 
         elif cmd == "help":
             show_help()
